@@ -11,3 +11,6 @@ clean:
 	fi
 
 install: clean build
+	@echo "Installing"
+	cp -f ./timer /usr/local/bin
+
