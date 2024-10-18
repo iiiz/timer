@@ -206,6 +206,8 @@ func stop(atTime string) {
 
 		fmt.Println(fmt.Sprintf("Stopping %s...", task))
 
+		// @TODO dynamic survey options, allow entry of new value
+		// Move to start function and ask for description instead here?
 		var taskInfo TaskDescription
 		var taskSurvey = []*survey.Question{
 			{
@@ -259,22 +261,22 @@ func stop(atTime string) {
 
 		fmt.Println(fmt.Sprintf("Stopped %s %s elapsed.", task, formattedDuration))
 
-    // check config for a target upstream.
-    if ( config.upstream_service != "" && config.upstream_service == "jira" ) {
-      if _isTaskFormat(task) {
-        var didSubmitLog bool
+		// check config for a target upstream.
+		if config.upstream_service != "" && config.upstream_service == "jira" {
+			if _isTaskFormat(task) {
+				var didSubmitLog bool
 
-        if _checkAndLoadJiraIssue(task) {
-          var seconds int64 = endTime.Sub(startTime).Milliseconds() / 1000
+				if _checkAndLoadJiraIssue(task) {
+					var seconds int64 = endTime.Sub(startTime).Milliseconds() / 1000
 
-          didSubmitLog = _submitJiraWorkLog(currentIssue.Key, taskInfo, seconds)
-        }
+					didSubmitLog = _submitJiraWorkLog(currentIssue.Key, taskInfo, seconds)
+				}
 
-        if didSubmitLog != true {
-          fmt.Println(fmt.Sprintf("Warning: %s looks like a jira task identifier, this is either not found or an error occured. A jira worklog was not created for this time period.", task))
-        }
-      }
-    }
+				if didSubmitLog != true {
+					fmt.Println(fmt.Sprintf("Warning: %s looks like a jira task identifier, this is either not found or an error occured. A jira worklog was not created for this time period.", task))
+				}
+			}
+		}
 
 	} else {
 		fmt.Println("No task started.")
@@ -298,9 +300,9 @@ func cancel() {
 func preCmd() {
 	cwd, err := os.Getwd()
 	check(err)
-	pwd := _getLastWorkingDir()
+	pwd, last_wd_err := _getLastWorkingDir()
 
-	if !_statusFileExists() {
+	if !_statusFileExists() && last_wd_err == nil {
 		// no current status, check the cwd and see if it is a git dir.
 		isGit := _isGitRepo()
 
@@ -491,7 +493,8 @@ func _formatDuration(duration time.Duration) string {
 }
 
 func _isTaskFormat(identifier string) bool {
-	taskFmt := regexp.MustCompile(`(?i)[A-Z0-9]+-[0-9]+`)
+	// @TODO: allow configurable task identification
+	taskFmt := regexp.MustCompile(`(?i)[0-9]+-[A-Z0-9]+`)
 
 	return taskFmt.Match([]byte(identifier))
 }
@@ -522,7 +525,7 @@ func _readConfig() {
 
 	scanner := bufio.NewScanner(configFile)
 
-  var upstream string = ""
+	var upstream string = ""
 	var url string = ""
 	var token string = ""
 	var user string = ""
@@ -531,8 +534,8 @@ func _readConfig() {
 		entry := strings.Split(scanner.Text(), "=")
 
 		switch entry[0] {
-    case "upstream_service":
-      upstream = entry[1]
+		case "upstream_service":
+			upstream = entry[1]
 		case "jira_url":
 			url = entry[1]
 		case "access_token":
@@ -552,6 +555,7 @@ func _configIsComplete() bool {
 	return config.jira_url != "" && config.username != "" && config.access_token != ""
 }
 
+// @TODO expand integration options
 func _checkAndLoadJiraIssue(taskKey string) bool {
 	if _configIsComplete() {
 		if httpClient == nil {
@@ -585,6 +589,7 @@ func _checkAndLoadJiraIssue(taskKey string) bool {
 	}
 }
 
+// @TODO expand integration options
 func _submitJiraWorkLog(taskKey string, info TaskDescription, seconds int64) bool {
 	if _configIsComplete() {
 		if httpClient == nil {
@@ -617,6 +622,7 @@ func _submitJiraWorkLog(taskKey string, info TaskDescription, seconds int64) boo
 	return false
 }
 
+// @TODO integration cleanup
 func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	auth := base64.StdEncoding.EncodeToString([]byte(config.username + ":" + config.access_token))
 	req.Header.Add("Authorization", "Basic "+auth)
@@ -637,12 +643,12 @@ func _getHeadRef() string {
 	return string(data)
 }
 
-func _getLastWorkingDir() string {
+// @TODO: use $OLDPWD ?
+func _getLastWorkingDir() (string, error) {
 	homeDir := _getHomeDir()
 	path, err := os.ReadFile(homeDir + "/.timer/wd")
-	check(err)
 
-	return string(path)
+	return string(path), err
 }
 
 func _setWorkingDir(path string) {
