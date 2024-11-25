@@ -12,6 +12,30 @@ Advanced usage:
         precmd   Check current directory and prompt to start time tracking, for use as zsh precommmand function.
 ```
 
+#### Config
+
+The default config file is `~/.timer/config` and can be configured for either an upstream jira or gitlab service.
+
+Default Config:
+
+```
+billable_enable=no
+```
+
+Example gitlab config:
+
+```
+upstream_service=gitlab
+url=https://gitlab.example.com
+token=YOUR_PERSONAL_ACCESS_TOKEN
+default_gitlab_project_id=9999999
+```
+
+- required scopes `api`
+- Default project id (required, will be optional in future): search for matching issue numbers in this project ignoring the current local git repo.
+  Useful if you have multiple projects but only one tracking issues across them.
+  Project ID can be copied from the three dot menu (top right) of a project home page.
+
 #### zsh prompt and precmd hook example
 
 ```sh

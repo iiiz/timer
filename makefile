@@ -2,7 +2,7 @@ main: clean build
 
 build:
 	@echo "Building"
-	GOARCH=amd64 GOOS=linux go build -o timer main.go
+	GOARCH=amd64 GOOS=linux go build -o timer *.go
 
 clean:
 	@echo "Cleaning up"
