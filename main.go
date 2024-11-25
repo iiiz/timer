@@ -102,7 +102,7 @@ func printUsage() {
 		"\tstop\t [-at 00:00] \t Stop tracking time.\n"+
 		"\tcancel\t\t Cancel tracking time.\n"+
 		"\tstatus\t\t Prints time tracking status.\n"+
-		"\tlog\t [-f yyyy-mm-dd]\t Print log of the current day or from a specified date."+
+		"\tlog\t [-f yyyy-mm-dd]\t Print log of the current day or from a specified date.\n"+
 		"\tconfig\t\t Print current loaded config.")
 
 	fmt.Fprintln(writer, "Advanced usage:\n"+
